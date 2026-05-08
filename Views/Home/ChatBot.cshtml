@@ -1,0 +1,47 @@
+﻿@model AIAssistant.Models.Home
+@{
+    ViewData["Title"] = "Chat Bot Assistant";
+}
+<link rel="stylesheet" href="~/css/ChatBot.css">
+<h1 class="mt-5 align-content-center text-center">@ViewData["Title"]</h1>
+
+<div class="chatBot">
+    <header>
+        
+        <span alt="Close"
+              id="cross"
+              onclick="cancel()">X</span>
+    </header>
+    <ul class="chatbox">
+        <li class="chat-incoming chat">
+            <p>Hey! How can I assist you today?</p>
+            @if(ViewBag.ValueMessageVisible == true)
+            {
+                foreach (var message in Model.MessagesOut)
+                {
+                    <p class="mt-3 chat-incoming">@message</p>
+                }
+            }
+            
+
+            @if (ViewBag.ValueMessageVisible == true)
+            {
+                <p class="mt-3 chat-outgoing">@ViewBag.ValueMessage</p>
+            }
+        </li>
+    </ul>
+    <form method="post" asp-action="ChatBot">
+        @* <input asp-for="Request" class="form-control" />
+        <span asp-validation-for="Request" class="text-danger"></span>
+        <div class="col-12 d-flex justify-content-end mt-2">
+            <button type="submit" class="btn btn-primary" name="action" value="text">Enter</button>
+        </div> *@
+        
+        <div class="chat-input">
+            <textarea rows="0" cols="17" asp-for="Request" class="form-control" placeholder="Enter a message..."></textarea>
+            <span asp-validation-for="Request" class="text-danger"></span>
+            <button id="sendBTN" type="submit" class="btn btn-primary" name="action" value="text">Send</button>
+        </div>
+    </form>
+    <script src="~/js/ChatBot.js" defer></script>
+</div>

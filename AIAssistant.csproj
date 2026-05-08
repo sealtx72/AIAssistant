@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\css\ChatBot.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Google.GenAI" Version="1.6.1" />
   </ItemGroup>
 
