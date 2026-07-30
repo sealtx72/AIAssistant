@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using static Google.Apis.Requests.BatchRequest;
 
@@ -33,8 +34,8 @@ namespace AIAssistant.Controllers
 
 
 
-            //var AI = "Gemini";
-            var AI = "Local";
+            var AI = "Gemini";
+            //var AI = "Local";
             if (AI == "Gemini")
             {
                 ViewBag.ValueMessage = "";
@@ -95,22 +96,24 @@ namespace AIAssistant.Controllers
 
         public IActionResult ChatBot()
         {
-            List<string> messages = new List<string>();
-
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> ChatBot([Bind("Request")] Home home)
         {
-            //home.MessagesIn = new List<string>();
-            //home.MessagesOut = new List<string>();
+            // Load existing messages from session
+            var messagesJson = HttpContext.Session.GetString("MessagesOut");
+            home.MessagesOut = !string.IsNullOrEmpty(messagesJson) ? JsonSerializer.Deserialize<List<string>>(messagesJson) : new List<string>();
+
+            var messagesJson2 = HttpContext.Session.GetString("MessagesIn");
+            home.MessagesIn = !string.IsNullOrEmpty(messagesJson2) ? JsonSerializer.Deserialize<List<string>>(messagesJson2) : new List<string>();
 
             var action = Request.Form["action"];
             if (action == "text")
             {
-                //var AI = "Gemini";
-                var AI = "Local";
+                var AI = "Gemini";
+                //var AI = "Local";
                 if (AI == "Gemini")
                 {
 
@@ -121,22 +124,39 @@ namespace AIAssistant.Controllers
                     if (ModelState.IsValid && !string.IsNullOrEmpty(home.Request))
                     {
                         // Process the text request with AI
+                        home.MessagesOut?.Add(home.Request);
+
                         var aiResponse = await GenerateContentSimpleText.GetAIResponse(home.Request);
-                        ViewBag.ValueMessage = aiResponse;
+                        
+                        home.MessagesIn?.Add(aiResponse);
+                        
+                        //ViewBag.ValueMessage = aiResponse;
                         ViewBag.ValueMessageVisible = true;
                     }
 
                 }
                 else if (AI == "Local")
                 {
-                    ViewBag.ValueMessage = "";
+                    ViewBag.ValueMessage = "";  
                     ViewBag.ValueMessageVisible = false;
-                    if (!string.IsNullOrEmpty(home.Request)) home.MessagesOut.Add(home.Request);
+                    if (!string.IsNullOrEmpty(home.Request))
+                    {
+                        home.MessagesOut?.Add(home.Request);
+                    }
+
+                    home.MessagesIn?.Add("Local AI response: This is a placeholder response from the local AI model.");
                     
-                    ViewBag.ValueMessage = "Local AI response: This is a placeholder response from the local AI model.";
                     ViewBag.ValueMessageVisible = true;
                 }
             }
+
+            // Save updated messages to session
+            HttpContext.Session.SetString("MessagesOut", JsonSerializer.Serialize(home.MessagesOut));
+            HttpContext.Session.SetString("MessagesIn", JsonSerializer.Serialize(home.MessagesIn));
+
+            // Clear the request text after processing
+            home.Request = "";
+
             return View(home);
         }
 
@@ -156,7 +176,7 @@ namespace AIAssistant.Controllers
                     var client = new Client();
                     var response = await client.Models.GenerateContentAsync(
                       model: "gemini-3-flash-preview", contents: prompt);
-                    return response.Candidates[0].Content.Parts[0].Text;
+                    return response?.Candidates?[0]?.Content?.Parts?[0]?.Text ?? "No response generated.";
 
                 }
                 catch (Exception ex)

@@ -14,20 +14,27 @@
     </header>
     <ul class="chatbox">
         <li class="chat-incoming chat">
-            <p>Hey! How can I assist you today?</p>
+            <p class="chat-incoming">Hey! How can I assist you today?</p>
             @if(ViewBag.ValueMessageVisible == true)
             {
-                foreach (var message in Model.MessagesOut)
+                for(int i = 0; i < Model.MessagesOut?.Count; i++)
+                {
+                    <p class="chat-outgoing message">@Model.MessagesOut[i]</p>
+                    <p class="chat-incoming">@Model.MessagesIn?[i]</p>
+                    
+                }
+
+                @* foreach (var message in Model.MessagesOut)
                 {
                     <p class="mt-3 chat-incoming">@message</p>
-                }
+                } *@
             }
             
 
-            @if (ViewBag.ValueMessageVisible == true)
+            @* @if (ViewBag.ValueMessageVisible == true)
             {
                 <p class="mt-3 chat-outgoing">@ViewBag.ValueMessage</p>
-            }
+            } *@
         </li>
     </ul>
     <form method="post" asp-action="ChatBot">
@@ -38,10 +45,19 @@
         </div> *@
         
         <div class="chat-input">
-            <textarea rows="0" cols="17" asp-for="Request" class="form-control" placeholder="Enter a message..."></textarea>
+            <textarea rows="0" cols="17" asp-for="Request" class="form-control" placeholder="Enter a message..." autocomplete="off"></textarea>
             <span asp-validation-for="Request" class="text-danger"></span>
             <button id="sendBTN" type="submit" class="btn btn-primary" name="action" value="text">Send</button>
         </div>
     </form>
-    <script src="~/js/ChatBot.js" defer></script>
+    @* <script src="~/js/ChatBot.js" defer></script> *@
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var textarea = document.getElementById('Request');
+            if (textarea) {
+                textarea.value = '';
+            }
+        });
+    </script>
 </div>
